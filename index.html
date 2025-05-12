@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Excalibur - HTML Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: linear-gradient(#444, #111); }
+    canvas { display: block; background: #222; margin: auto; }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="450"></canvas>
+
+<script>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const player = { x: 100, y: 350, width: 40, height: 40, color: "cyan", vx: 0, vy: 0, grounded: false };
+  const gravity = 0.8;
+  const jumpPower = -15;
+  const moveSpeed = 5;
+
+  const keys = {};
+  window.addEventListener("keydown", e => keys[e.key] = true);
+  window.addEventListener("keyup", e => keys[e.key] = false);
+
+  const platforms = [
+    { x: 0, y: 400, width: 800, height: 50 },
+    { x: 300, y: 300, width: 200, height: 20 }
+  ];
+
+  function update() {
+    // Movement
+    if (keys["a"] || keys["ArrowLeft"]) player.vx = -moveSpeed;
+    else if (keys["d"] || keys["ArrowRight"]) player.vx = moveSpeed;
+    else player.vx = 0;
+
+    // Jump
+    if ((keys["w"] || keys[" "]) && player.grounded) {
+      player.vy = jumpPower;
+      player.grounded = false;
+    }
+
+    // Apply gravity
+    player.vy += gravity;
+    player.x += player.vx;
+    player.y += player.vy;
+
+    // Collision
+    player.grounded = false;
+    for (let plat of platforms) {
+      if (player.x < plat.x + plat.width &&
+          player.x + player.width > plat.x &&
+          player.y + player.height < plat.y + 10 &&
+          player.y + player.height + player.vy >= plat.y) {
+        player.y = plat.y - player.height;
+        player.vy = 0;
+        player.grounded = true;
+      }
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw player
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Draw platforms
+    ctx.fillStyle = "#555";
+    for (let plat of platforms) {
+      ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+    }
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  loop();
+</script>
+</body>
+</html>
